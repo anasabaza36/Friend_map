@@ -23,6 +23,8 @@ const geolocError = ref<string | null>(null);
 const stopViewingOwners = ref<Set<string>>(new Set());
 const selectedMarker = ref<FriendMarkerState | null>(null);
 const selectedSharingMode = ref<SharingMode | null>(null);
+const focusedUserId = ref<string | null>(null);
+const friendsPanelOpen = ref(true);
 
 let map: L.Map | null = null;
 let myMarker: L.Marker | null = null;
@@ -61,6 +63,7 @@ function avatarIcon(marker: FriendMarkerState): L.DivIcon {
     className: `friend-marker ${staleCls}`,
     html: `
       <div class="marker-avatar">
+        <span class="focus-ring"></span>
         <span class="initials">${init}</span>
         <span class="marker-name">${marker.username}</span>
         <span class="marker-time">${formatRelativeTime(marker.timestamp)}</span>
@@ -144,7 +147,35 @@ function updateAllMarkers(): void {
       removeFriendMarker(id);
     }
   }
+  applyFocusVisuals();
 }
+
+function applyFocusVisuals(): void {
+  for (const [id, marker] of friendMarkers.entries()) {
+    const el = (marker as unknown as { _icon?: HTMLElement })._icon as
+      | HTMLElement
+      | undefined;
+    if (el) el.classList.toggle('focused', id === focusedUserId.value);
+  }
+}
+
+function focusFriend(userId: string | null): void {
+  focusedUserId.value = userId;
+  const marker = userId ? friendMarkers.get(userId) : null;
+  if (userId && marker && map) {
+    map.flyTo(marker.getLatLng(), Math.max(map.getZoom(), 14), {
+      duration: 0.9,
+    });
+    marker.openPopup();
+  }
+  applyFocusVisuals();
+}
+
+const visibleFriendsList = computed<FriendMarkerState[]>(() =>
+  locationStore.markerList.filter(
+    (m) => !stopViewingOwners.value.has(m.userId),
+  ),
+);
 
 function updateMyMarker(lat: number, lng: number, accuracy: number): void {
   if (!map) return;
@@ -401,6 +432,41 @@ const hasNoFriendsVisible = computed(
 
     <div ref="mapContainer" class="map-container"></div>
 
+    <aside class="friends-panel" :class="{ collapsed: !friendsPanelOpen }">
+      <div class="fp-header">
+        <span class="fp-title">{{ t('map.friendsList') }}</span>
+        <button
+          class="fp-toggle"
+          :title="friendsPanelOpen ? t('map.hideList') : t('map.showList')"
+          @click="friendsPanelOpen = !friendsPanelOpen"
+        >
+          {{ friendsPanelOpen ? '‹' : '›' }}
+        </button>
+      </div>
+      <div class="fp-list">
+        <button
+          v-for="f in visibleFriendsList"
+          :key="f.userId"
+          class="fp-item"
+          :class="{ active: focusedUserId === f.userId }"
+          @click="focusFriend(f.userId)"
+        >
+          <span class="fp-avatar" :class="{ stale: f.stale }">
+            {{ initials(f.username) }}
+            <span class="fp-dot" :class="f.stale ? 'stale' : 'live'"></span>
+          </span>
+          <span class="fp-meta">
+            <strong class="fp-name">{{ f.username }}</strong>
+            <span class="fp-time">{{ t('map.updated') }} {{ formatRelativeTime(f.timestamp) }}</span>
+          </span>
+          <span class="fp-pin" :class="{ stale: f.stale }">📌</span>
+        </button>
+        <p v-if="visibleFriendsList.length === 0" class="fp-empty">
+          {{ t('map.noFriendsInList') }}
+        </p>
+      </div>
+    </aside>
+
     <div v-if="hasNoFriendsVisible" class="empty-overlay">
       <div class="empty-card">
         <h3>{{ t('map.noFriendsVisible') }}</h3>
@@ -451,6 +517,179 @@ const hasNoFriendsVisible = computed(
 .map-container {
   width: 100%;
   height: 100%;
+}
+
+/* ---------- Friends sidebar ---------- */
+.friends-panel {
+  position: absolute;
+  top: 3.4rem;
+  left: 0.75rem;
+  z-index: 550;
+  width: 250px;
+  max-height: calc(100% - 5rem);
+  display: flex;
+  flex-direction: column;
+  background: rgba(16, 0, 31, 0.72);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border: 1px solid rgba(196, 100, 255, 0.22);
+  border-radius: 18px;
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  transition: width 0.25s ease;
+}
+.friends-panel.collapsed {
+  width: 50px;
+}
+.friends-panel.collapsed .fp-list,
+.friends-panel.collapsed .fp-title {
+  display: none;
+}
+.friends-panel.collapsed .fp-header {
+  justify-content: center;
+  padding: 0.7rem;
+}
+.fp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.7rem 0.9rem;
+  border-bottom: 1px solid rgba(196, 100, 255, 0.15);
+}
+.fp-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.fp-toggle {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  border: 1px solid rgba(196, 100, 255, 0.3);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.fp-toggle:hover {
+  background: rgba(196, 0, 255, 0.15);
+  border-color: #c400ff;
+  color: #fff;
+}
+.fp-list {
+  overflow-y: auto;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(196, 100, 255, 0.35) transparent;
+}
+.fp-item {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.16s ease, border-color 0.16s ease, transform 0.12s ease;
+}
+.fp-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(196, 100, 255, 0.4);
+  transform: translateY(-1px);
+}
+.fp-item.active {
+  background: rgba(196, 0, 255, 0.16);
+  border-color: #c400ff;
+  box-shadow: 0 0 0 3px rgba(196, 0, 255, 0.14), 0 0 18px rgba(255, 61, 129, 0.18);
+}
+.fp-avatar {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: conic-gradient(from 210deg, #ff7a00, #ff3d81, #c400ff, #7b00ff, #ff7a00);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.78rem;
+  flex-shrink: 0;
+  box-shadow: 0 0 12px rgba(196, 0, 255, 0.3);
+}
+.fp-avatar.stale {
+  background: var(--text-muted);
+  box-shadow: none;
+}
+.fp-dot {
+  position: absolute;
+  bottom: 1px;
+  right: 1px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 2px solid var(--bg-dark-start);
+}
+.fp-dot.live {
+  background: var(--color-success);
+}
+.fp-dot.stale {
+  background: var(--color-warning);
+}
+.fp-meta {
+  flex: 1;
+  min-width: 0;
+}
+.fp-name {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fp-time {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fp-pin {
+  font-size: 0.85rem;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+.fp-pin.stale {
+  filter: grayscale(1);
+  opacity: 0.5;
+}
+.fp-empty {
+  margin: 0;
+  padding: 1rem 0.5rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+html[dir='rtl'] .friends-panel {
+  left: auto;
+  right: 0.75rem;
 }
 
 .status-bar {
@@ -763,6 +1002,42 @@ button.danger:hover {
   }
   100% {
     box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+}
+
+/* ---------- Focus ring (map pinpoint) ---------- */
+.focus-ring {
+  position: absolute;
+  top: 20px;
+  left: calc(50% - 26px);
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 3px solid #ff3d81;
+  opacity: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+.friend-marker.focused .focus-ring {
+  animation: focusRing 1.2s ease-out infinite;
+}
+.friend-marker.focused .initials {
+  box-shadow: 0 0 0 3px rgba(255, 61, 129, 0.9), 0 0 26px rgba(255, 61, 129, 0.7);
+  transform: scale(1.12);
+}
+.friend-marker.focused .marker-name {
+  border-color: #ff3d81;
+  color: #fff;
+  background: rgba(60, 0, 90, 0.96);
+}
+@keyframes focusRing {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.7);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.6);
   }
 }
 
