@@ -1,0 +1,133 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum FriendRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum SharingMode {
+  GHOST
+  EVERYONE
+  SELECTED
+  EXCEPT_SELECTED
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @unique
+  username     String   @unique
+  passwordHash String   @map("password_hash")
+  avatarUrl    String?  @map("avatar_url")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  sentFriendRequests     FriendRequest[]         @relation("SentFriendRequests")
+  receivedFriendRequests FriendRequest[]         @relation("ReceivedFriendRequests")
+  friendshipsAsA         Friendship[]            @relation("FriendshipUserA")
+  friendshipsAsB         Friendship[]            @relation("FriendshipUserB")
+  sharingSettings        SharingSettings?
+  sharingSelectedAsOwner SharingSelectedFriend[] @relation("SharingSelectedOwner")
+  sharingSelectedAsFriend SharingSelectedFriend[] @relation("SharingSelectedFriend")
+  sharingExceptAsOwner   SharingExceptFriend[]   @relation("SharingExceptOwner")
+  sharingExceptAsFriend  SharingExceptFriend[]   @relation("SharingExceptFriend")
+  locationHistory        LocationHistory[]
+
+  @@index([email])
+  @@index([username])
+  @@map("users")
+}
+
+model FriendRequest {
+  id         String              @id @default(uuid()) @db.Uuid
+  senderId   String              @map("sender_id") @db.Uuid
+  receiverId String              @map("receiver_id") @db.Uuid
+  status     FriendRequestStatus @default(PENDING)
+  createdAt  DateTime            @default(now()) @map("created_at")
+  updatedAt  DateTime            @updatedAt @map("updated_at")
+
+  sender   User @relation("SentFriendRequests", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("ReceivedFriendRequests", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@unique([senderId, receiverId])
+  @@index([receiverId, status])
+  @@index([senderId, status])
+  @@map("friend_requests")
+}
+
+model Friendship {
+  id        String   @id @default(uuid()) @db.Uuid
+  userAId   String   @map("user_a_id") @db.Uuid
+  userBId   String   @map("user_b_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  userA User @relation("FriendshipUserA", fields: [userAId], references: [id], onDelete: Cascade)
+  userB User @relation("FriendshipUserB", fields: [userBId], references: [id], onDelete: Cascade)
+
+  @@unique([userAId, userBId])
+  @@index([userAId])
+  @@index([userBId])
+  @@map("friendships")
+}
+
+model SharingSettings {
+  id        String      @id @default(uuid()) @db.Uuid
+  userId    String      @unique @map("user_id") @db.Uuid
+  mode      SharingMode @default(GHOST)
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime    @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([mode])
+  @@map("sharing_settings")
+}
+
+model SharingSelectedFriend {
+  ownerId   String @map("owner_id") @db.Uuid
+  friendId  String @map("friend_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  owner  User @relation("SharingSelectedOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  friend User @relation("SharingSelectedFriend", fields: [friendId], references: [id], onDelete: Cascade)
+
+  @@id([ownerId, friendId])
+  @@index([friendId])
+  @@map("sharing_selected_friends")
+}
+
+model SharingExceptFriend {
+  ownerId   String @map("owner_id") @db.Uuid
+  friendId  String @map("friend_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  owner  User @relation("SharingExceptOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  friend User @relation("SharingExceptFriend", fields: [friendId], references: [id], onDelete: Cascade)
+
+  @@id([ownerId, friendId])
+  @@index([friendId])
+  @@map("sharing_except_friends")
+}
+
+model LocationHistory {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  lat       Float
+  lng       Float
+  accuracy  Float
+  timestamp DateTime
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, timestamp])
+  @@index([createdAt])
+  @@map("location_history")
+}

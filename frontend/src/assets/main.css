@@ -1,0 +1,270 @@
+:root {
+  /* Core palette */
+  --bg-dark-start: #10001F;
+  --bg-dark-end: #28004A;
+  --violet-accent: #8A00D4;
+  --pink-accent: #FF3D81;
+  --orange-cta: #FF6A00;
+
+  /* New brand gradient (login primary) */
+  --gradient-brand: linear-gradient(135deg, #FF7A00 0%, #FF3D81 50%, #C400FF 100%);
+
+  /* Gradient */
+  --gradient-hero: linear-gradient(135deg, var(--bg-dark-start), var(--violet-accent) 35%, var(--pink-accent) 65%, var(--orange-cta));
+  --gradient-subtle: linear-gradient(135deg, var(--violet-accent), var(--pink-accent));
+
+  /* Semantic */
+  --bg-primary: #10001F;
+  --bg-surface: #1A0033;
+  --bg-card: rgba(255, 255, 255, 0.05);
+  --bg-card-hover: rgba(255, 255, 255, 0.09);
+  --bg-input: rgba(255, 255, 255, 0.05);
+  --border-subtle: rgba(196, 100, 255, 0.25);
+  --border-focus: #C400FF;
+
+  --text-primary: #FFFFFF;
+  --text-secondary: #C7B6DD;
+  --text-muted: #B8A6CC;
+  --text-inverse: #10001F;
+
+  /* Status */
+  --color-success: #22C55E;
+  --color-warning: #F59E0B;
+  --color-error: #FF6B6B;
+
+  /* Misc */
+  --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  --font-display: 'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #app {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg-primary);
+  background: linear-gradient(180deg, var(--bg-dark-start), var(--bg-dark-end));
+  color: var(--text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+/* ============ FriendMap design system ============ */
+
+/* Primary gradient button (matches auth pages) */
+.btn-gradient {
+  height: 56px;
+  padding: 0 1.5rem;
+  border: none;
+  border-radius: 14px;
+  background: var(--gradient-brand);
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 10px 26px rgba(255, 61, 129, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.btn-gradient:hover:not(:disabled) {
+  filter: brightness(1.08);
+  box-shadow: 0 14px 34px rgba(196, 0, 255, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+.btn-gradient:active:not(:disabled) {
+  transform: translateY(0);
+}
+.btn-gradient:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.btn-gradient--sm {
+  height: 40px;
+  padding: 0 1rem;
+  font-size: 0.9rem;
+  border-radius: 10px;
+}
+
+/* Ghost / secondary button */
+.btn-ghost {
+  height: 40px;
+  padding: 0 1rem;
+  border: 1px solid rgba(196, 100, 255, 0.35);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+.btn-ghost:hover {
+  border-color: #C400FF;
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Glass panel */
+.glass {
+  background: rgba(26, 0, 51, 0.45);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Glass input */
+.input-glass {
+  width: 100%;
+  height: 58px;
+  padding: 0 1.1rem;
+  font-family: var(--font-body);
+  font-size: 0.98rem;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(190, 100, 255, 0.25);
+  border-radius: 14px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+.input-glass::placeholder {
+  color: rgba(255, 255, 255, 0.55);
+}
+.input-glass:focus {
+  outline: none;
+  border-color: #C400FF;
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: 0 0 0 3px rgba(196, 0, 255, 0.18), 0 0 20px rgba(255, 61, 129, 0.18);
+}
+
+/* Gradient-used avatar rings (auth-style) */
+.avatar-gradient {
+  border-radius: 50%;
+  background: conic-gradient(from 210deg, #FF7A00, #FF3D81, #C400FF, #7B00FF, #FF7A00);
+  padding: 3px;
+}
+.avatar-gradient .avatar-inner {
+  border-radius: 50%;
+  background: var(--bg-dark-start);
+  color: #fff;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+html[dir='rtl'] body {
+  font-family: 'Segoe UI', 'Tajawal', 'Cairo', var(--font-body), sans-serif;
+}
+
+html[dir='rtl'] .toast-container {
+  right: auto;
+  left: 1rem;
+}
+
+html[dir='rtl'] .toast-item {
+  animation-name: toastInRTL;
+}
+
+@keyframes toastInRTL {
+  from {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+html[dir='rtl'] .toast-enter-from,
+html[dir='rtl'] .toast-leave-to {
+  transform: translateX(-40px);
+}
+
+a {
+  color: var(--violet-accent);
+  transition: color 0.15s ease;
+}
+
+a:hover {
+  color: var(--pink-accent);
+}
+
+button {
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  padding: 0.5rem 0.9rem;
+  font-size: 0.9rem;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+button:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+input[type='email'],
+input[type='text'],
+input[type='password'] {
+  font-family: var(--font-body);
+  padding: 0 1rem;
+  height: 50px;
+  border: 1px solid rgba(190, 100, 255, 0.25);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+input::placeholder {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+input:focus {
+  outline: none;
+  border-color: #C400FF;
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: 0 0 0 3px rgba(196, 0, 255, 0.18), 0 0 20px rgba(255, 61, 129, 0.18);
+}
