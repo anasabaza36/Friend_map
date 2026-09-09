@@ -37,6 +37,7 @@ describe('FriendsService authorization', () => {
   const usersService = {
     findByEmail: jest.fn(),
     findByUsername: jest.fn(),
+    findById: jest.fn(),
   };
 
   const friendshipsService = {

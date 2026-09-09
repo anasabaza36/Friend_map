@@ -40,6 +40,7 @@ import {
   LocationHiddenPayload,
   SocketErrorPayload,
 } from './types/realtime.types';
+import { StartViewingDto, StopViewingDto } from './dto/viewing.dto';
 import { PresenceService } from './presence.service';
 import { PrivacyRealtimeService } from './privacy-realtime.service';
 import { SocketJwtAuthService } from './socket-jwt-auth.service';
@@ -229,14 +230,14 @@ export class LocationGateway
   @SubscribeMessage(SOCKET_EVENT_STOP_VIEWING)
   async handleStopViewing(
     @ConnectedSocket() socket: AuthenticatedSocket,
-    @MessageBody() payload: { ownerId: string },
+    @MessageBody() dto: StopViewingDto,
   ): Promise<void> {
     const user = socket.data?.user;
     if (!user) {
       this.emitError(socket, 'NOT_AUTHENTICATED', 'Not authenticated');
       return;
     }
-    const ownerId = payload?.ownerId;
+    const ownerId = dto?.ownerId;
     if (!ownerId) {
       this.emitError(socket, 'INVALID_PAYLOAD', 'ownerId is required');
       return;
@@ -249,14 +250,14 @@ export class LocationGateway
   @SubscribeMessage(SOCKET_EVENT_START_VIEWING)
   async handleStartViewing(
     @ConnectedSocket() socket: AuthenticatedSocket,
-    @MessageBody() payload: { ownerId: string },
+    @MessageBody() dto: StartViewingDto,
   ): Promise<void> {
     const user = socket.data?.user;
     if (!user) {
       this.emitError(socket, 'NOT_AUTHENTICATED', 'Not authenticated');
       return;
     }
-    const ownerId = payload?.ownerId;
+    const ownerId = dto?.ownerId;
     if (!ownerId) {
       this.emitError(socket, 'INVALID_PAYLOAD', 'ownerId is required');
       return;

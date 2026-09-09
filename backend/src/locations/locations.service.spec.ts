@@ -80,7 +80,7 @@ describe('LocationsService authorization', () => {
 
       const result = await service.getFriendCurrentLocation(viewerId, ownerId);
 
-      expect(result).toEqual(storedLocation);
+      expect(result).toEqual({ ...storedLocation, userId: ownerId });
       expect(visibilityService.canViewerSeeOwner).toHaveBeenCalledWith(
         viewerId,
         ownerId,

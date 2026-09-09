@@ -19,7 +19,7 @@ import {
   FriendsResponse,
   RemoveFriendResponse,
 } from './types/friends-response.type';
-import type { LocationGateway } from '../realtime/location.gateway';
+import { LocationGateway } from '../realtime/location.gateway';
 
 @Injectable()
 export class FriendsService {
@@ -348,7 +348,7 @@ export class FriendsService {
   private getGateway(): LocationGateway | null {
     if (this.gateway) return this.gateway;
     try {
-      this.gateway = this.moduleRef.get<LocationGateway>('LocationGateway', { strict: false });
+      this.gateway = this.moduleRef.get(LocationGateway, { strict: false });
     } catch {
       this.gateway = null;
     }

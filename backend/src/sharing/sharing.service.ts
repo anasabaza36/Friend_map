@@ -12,6 +12,7 @@ import { UserSummary } from '../common/types/user-summary.type';
 import { UpdateSharingFriendsDto } from './dto/update-sharing-friends.dto';
 import { UpdateSharingSettingsDto } from './dto/update-sharing-settings.dto';
 import { SharingSettingsResponse } from './types/sharing-response.type';
+import { PrivacyRealtimeService } from '../realtime/privacy-realtime.service';
 
 type PrivacyNotifier = {
   notifySharingModeChanged: (
@@ -37,10 +38,9 @@ export class SharingService implements OnModuleInit {
 
   onModuleInit(): void {
     try {
-      const notifier = this.moduleRef.get<PrivacyNotifier>(
-        'PrivacyRealtimeService' as never,
-        { strict: false },
-      );
+      const notifier = this.moduleRef.get(PrivacyRealtimeService, {
+        strict: false,
+      });
       if (notifier && typeof notifier.notifySharingModeChanged === 'function') {
         this.privacyNotifier = notifier;
       }
